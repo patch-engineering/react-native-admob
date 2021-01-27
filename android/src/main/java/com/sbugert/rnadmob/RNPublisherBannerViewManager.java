@@ -33,6 +33,7 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
     String[] testDevices;
     AdSize[] validAdSizes;
     String adUnitID;
+    String prebidAdID;
     AdSize adSize;
 
     public ReactPublisherAdView(final Context context) {
@@ -155,8 +156,43 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
                 adRequestBuilder.addTestDevice(testDevice);
             }
         }
-        PublisherAdRequest adRequest = adRequestBuilder.build();
-        this.adView.loadAd(adRequest);
+
+        if (this.customTargeting != null) {
+            ReadableMapKeySetIterator iterator = this.customTargeting.keySetIterator();
+            while (iterator.hasNextKey()) {
+                String key = iterator.nextKey();
+                ReadableType type = this.customTargeting.getType(key);
+                switch (type) {
+                    case String:
+                        adRequestBuilder.addCustomTargeting(key, this.customTargeting.getString(key));
+                        break;
+                    case Array:
+                        ReadableArray arrayValue = this.customTargeting.getArray(key);
+                        adRequestBuilder.addCustomTargeting(key, (List<String>) (Object) arrayValue.toArrayList());
+                        break;
+                    case Number:
+                        adRequestBuilder.addCustomTargeting(key, Integer.toString(this.customTargeting.getInt(key)));
+                        break;
+                    case Boolean:
+                        adRequestBuilder.addCustomTargeting(key, Boolean.toString(this.customTargeting.getBoolean(key)));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+      PrebidMobile.setPrebidServerHost(Host.APPNEXUS);
+      PrebidMobile.setPrebidServerAccountId("62867964-e8ce-488b-bce3-176152660158");
+      PrebidMobile.setApplicationContext(getContext());
+      BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidAdID, 300, 250);
+
+      bannerAdUnit.fetchDemand(adRequestBuilder, new OnCompleteListener() {
+        @Override
+        public void onComplete(ResultCode resultCode) {
+          PublisherAdRequest request = adRequestBuilder.build();
+          adView.loadAd(request);
+        }
+      });
     }
 
     public void setAdUnitID(String adUnitID) {
@@ -167,6 +203,18 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         }
         this.adUnitID = adUnitID;
         this.adView.setAdUnitId(adUnitID);
+    }
+
+    public void setPrebidAdID(String prebidAdID) {
+        // Do I need this stuff below that was used in setAdUnitID idk
+         if (this.prebidAdID != null) {
+            // We can only set adUnitID once, so when it was previously set we have
+            // to recreate the view
+            this.createAdView();
+        }
+        this.prebidAdID = prebidAdID;
+        this.adView.setPrebidAdID(prebidAdID);
+
     }
 
     public void setTestDevices(String[] testDevices) {
@@ -198,6 +246,8 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     public static final String PROP_VALID_AD_SIZES = "validAdSizes";
     public static final String PROP_AD_UNIT_ID = "adUnitID";
     public static final String PROP_TEST_DEVICES = "testDevices";
+    public static final String PROP_CUSTOM_TARGETING = "customTargeting";
+    public static final String PROP_PREBID_AD_ID = "prebidAdID";
 
     public static final String EVENT_SIZE_CHANGE = "onSizeChange";
     public static final String EVENT_AD_LOADED = "onAdLoaded";
@@ -262,6 +312,16 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
                 adSizes[i] = getAdSizeFromString(adSizeString);
         }
         view.setValidAdSizes(adSizes);
+    }
+
+    @ReactProp(name = PROP_CUSTOM_TARGETING)
+    public void setCustomTargeting(final ReactPublisherAdView view, final ReadableMap customTargeting) {
+        view.setCustomTargeting(customTargeting);
+    }
+
+    @ReactProp(name = PROP_PREBID_AD_ID)
+    public void setPropPrebidAdID(final ReactPublisherAdView view, final String prebidAdID) {
+        view.setPrebidAdID(prebidAdID);
     }
 
     @ReactProp(name = PROP_AD_UNIT_ID)
