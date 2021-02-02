@@ -1,6 +1,8 @@
 #import "RNDFPBannerView.h"
 #import "RNAdMobUtils.h"
 
+@import PrebidMobile;
+
 #if __has_include(<React/RCTBridgeModule.h>)
 #import <React/RCTBridgeModule.h>
 #import <React/UIView+React.h>
@@ -16,6 +18,9 @@
 @implementation RNDFPBannerView
 {
     DFPBannerView  *_bannerView;
+    NSDictionary *_customTargeting;
+    NSString *_prebidUnitConfigId;
+    NSString *_prebidServerAccountId;
 }
 
 - (void)dealloc
@@ -26,18 +31,25 @@
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
-{
+{   
     if ((self = [super initWithFrame:frame])) {
         super.backgroundColor = [UIColor clearColor];
 
         UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
         UIViewController *rootViewController = [keyWindow rootViewController];
 
+        // where should these go?
+        Prebid.shared.prebidServerAccountId = _prebidServerAccountId;
+        Prebid.shared.prebidServerHost = PrebidHostAppnexus;
+        // for debugging only
+        // Prebid.shared.pbsDebug = true;
+
         _bannerView = [[DFPBannerView alloc] initWithAdSize:kGADAdSizeBanner];
         _bannerView.delegate = self;
         _bannerView.adSizeDelegate = self;
         _bannerView.appEventDelegate = self;
         _bannerView.rootViewController = rootViewController;
+        self.bannerUnit = [[BannerAdUnit alloc] initWithConfigId:_prebidUnitConfigId size:CGSizeMake(300, 250)];
         [self addSubview:_bannerView];
     }
 
@@ -61,8 +73,19 @@
             request.customTargeting = _customTargeting;
         }
     }
-
-    [_bannerView loadRequest:request];
+    
+    PBBannerAdUnitParameters* parameters = [[PBBannerAdUnitParameters alloc] init];
+    parameters.api = @[PBApi.MRAID_2];
+    self.bannerUnit.parameters = parameters;
+    
+    [self.bannerUnit fetchDemandWithAdObject:request completion:^(enum ResultCode result) {
+        NSLog(@"Prebid demand result %ld", (long)result);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_bannerView loadRequest:request];
+        });
+    }];
+    
+//    [_bannerView loadRequest:request];
 }
 
 - (void)setValidAdSizes:(NSArray *)adSizes
@@ -82,6 +105,16 @@
 - (void)setTestDevices:(NSArray *)testDevices
 {
     _testDevices = RNAdMobProcessTestDevices(testDevices, kDFPSimulatorID);
+}
+
+- (void)setPrebidServerAccountId:(NSString *)prebidServerAccountId
+{
+    _prebidServerAccountId = prebidServerAccountId;
+}
+
+- (void)setPrebidUnitConfigId:(NSString *)prebidUnitConfigId
+{
+    _prebidUnitConfigId = prebidUnitConfigId;
 }
 
 

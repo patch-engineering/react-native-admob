@@ -89,8 +89,8 @@ PublisherBanner.propTypes = {
   adSize: string,
 
   /**
-* make it as json?
-*/
+   * make it as json?
+   */
   customTargeting: object,
 
   /**
@@ -102,6 +102,16 @@ PublisherBanner.propTypes = {
    * DFP ad unit ID
    */
   adUnitID: string,
+
+  /**
+   * Prebid Server Account ID
+   */
+  prebidServerAccountId: string,
+
+  /**
+   * Prebid ad unit config ID
+   */
+  prebidUnitConfigId: string,
 
   /**
    * Array of test devices. Use PublisherBanner.simulatorId for the simulator
