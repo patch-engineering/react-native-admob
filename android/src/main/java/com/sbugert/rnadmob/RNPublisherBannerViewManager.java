@@ -12,7 +12,10 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableNativeArray;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.ViewGroupManager;
@@ -32,6 +35,8 @@ import org.prebid.mobile.OnCompleteListener;
 import org.prebid.mobile.PrebidMobile;
 import org.prebid.mobile.ResultCode;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -206,7 +211,6 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
             adView.loadAd(request);
         }
         });
-
     }
 
     public void setAdUnitID(String adUnitID) {
@@ -343,6 +347,7 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     public void setPropPrebidServerAccountId(final ReactPublisherAdView view, final String prebidServerAccountId) {
         view.setPrebidServerAccountId(prebidServerAccountId);
     }
+
 
     @ReactProp(name = PROP_AD_UNIT_ID)
     public void setPropAdUnitID(final ReactPublisherAdView view, final String adUnitID) {

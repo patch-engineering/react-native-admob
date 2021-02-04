@@ -1,10 +1,11 @@
-#if __has_include(<React/RCTComponent.h>)
+#if __has_include(<React/RCTView.h>)
 #import <React/RCTView.h>
 #else
 #import "RCTView.h"
 #endif
 
 @import GoogleMobileAds;
+@import PrebidMobile;
 
 @class RCTEventDispatcher;
 
@@ -12,6 +13,8 @@
 
 @property (nonatomic, copy) NSArray *validAdSizes;
 @property (nonatomic, copy) NSArray *testDevices;
+@property (nonatomic, copy) NSDictionary *customTargeting;
+@property (nonatomic, strong) BannerAdUnit *bannerUnit;
 
 @property (nonatomic, copy) RCTBubblingEventBlock onSizeChange;
 @property (nonatomic, copy) RCTBubblingEventBlock onAppEvent;
