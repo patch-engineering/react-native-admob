@@ -1,11 +1,15 @@
 package com.sbugert.rnadmob;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -25,10 +29,17 @@ import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.doubleclick.PublisherAdView;
 
+import org.prebid.mobile.BannerAdUnit;
+import org.prebid.mobile.Host;
+import org.prebid.mobile.OnCompleteListener;
+import org.prebid.mobile.PrebidMobile;
+import org.prebid.mobile.ResultCode;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
@@ -38,6 +49,8 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
     String[] testDevices;
     AdSize[] validAdSizes;
     String adUnitID;
+    String prebidUnitConfigId;
+    String prebidServerAccountId;
     AdSize adSize;
     ReadableMap customTargeting;
 
@@ -151,7 +164,7 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         AdSize[] adSizesArray = adSizes.toArray(new AdSize[adSizes.size()]);
         this.adView.setAdSizes(adSizesArray);
 
-        PublisherAdRequest.Builder adRequestBuilder = new PublisherAdRequest.Builder();
+        final PublisherAdRequest.Builder adRequestBuilder = new PublisherAdRequest.Builder();
         if (testDevices != null) {
             for (int i = 0; i < testDevices.length; i++) {
                 String testDevice = testDevices[i];
@@ -163,32 +176,41 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         }
 
         if (this.customTargeting != null) {
-            ReadableMapKeySetIterator iterator = this.customTargeting.keySetIterator();
-            while (iterator.hasNextKey()) {
-                String key = iterator.nextKey();
-                ReadableType type = this.customTargeting.getType(key);
-                switch (type) {
-                    case String:
-                        adRequestBuilder.addCustomTargeting(key, this.customTargeting.getString(key));
-                        break;
-                    case Array:
-                        ReadableArray arrayValue = this.customTargeting.getArray(key);
-                        adRequestBuilder.addCustomTargeting(key, (List<String>) (Object) arrayValue.toArrayList());
-                        break;
-                    case Number:
-                        adRequestBuilder.addCustomTargeting(key, Integer.toString(this.customTargeting.getInt(key)));
-                        break;
-                    case Boolean:
-                        adRequestBuilder.addCustomTargeting(key, Boolean.toString(this.customTargeting.getBoolean(key)));
-                        break;
-                    default:
-                        break;
-                }
+        ReadableMapKeySetIterator iterator = this.customTargeting.keySetIterator();
+        while (iterator.hasNextKey()) {
+            String key = iterator.nextKey();
+            ReadableType type = this.customTargeting.getType(key);
+            switch (type) {
+            case String:
+                adRequestBuilder.addCustomTargeting(key, this.customTargeting.getString(key));
+                break;
+            case Array:
+                ReadableArray arrayValue = this.customTargeting.getArray(key);
+                adRequestBuilder.addCustomTargeting(key, (List<String>) (Object) arrayValue.toArrayList());
+                break;
+            case Number:
+                adRequestBuilder.addCustomTargeting(key, Integer.toString(this.customTargeting.getInt(key)));
+                break;
+            case Boolean:
+                adRequestBuilder.addCustomTargeting(key, Boolean.toString(this.customTargeting.getBoolean(key)));
+                break;
+            default:
+                break;
             }
         }
-        
-        PublisherAdRequest adRequest = adRequestBuilder.build();
-        this.adView.loadAd(adRequest);
+        }
+        PrebidMobile.setPrebidServerHost(Host.APPNEXUS);
+        PrebidMobile.setPrebidServerAccountId(this.prebidServerAccountId); 
+        PrebidMobile.setApplicationContext(getContext());
+        BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidUnitConfigId);
+
+        bannerAdUnit.fetchDemand(adRequestBuilder, new OnCompleteListener() {
+        @Override
+        public void onComplete(ResultCode resultCode) {
+            PublisherAdRequest request = adRequestBuilder.build();
+            adView.loadAd(request);
+        }
+        });
     }
 
     public void setAdUnitID(String adUnitID) {
@@ -199,6 +221,14 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         }
         this.adUnitID = adUnitID;
         this.adView.setAdUnitId(adUnitID);
+    }
+
+    public void setPrebidUnitConfigId(String prebidUnitConfigId) {
+        this.prebidUnitConfigId = prebidUnitConfigId;
+    }
+
+    public void setPrebidServerAccountId(String prebidServerAccountId) {
+        this.prebidServerAccountId = prebidServerAccountId;
     }
 
     public void setTestDevices(String[] testDevices) {
@@ -235,6 +265,8 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     public static final String PROP_AD_UNIT_ID = "adUnitID";
     public static final String PROP_TEST_DEVICES = "testDevices";
     public static final String PROP_CUSTOM_TARGETING = "customTargeting";
+    public static final String PROP_PREBID_UNIT_CONFIG_ID = "prebidUnitConfigId";
+    public static final String PROP_PREBID_SERVER_ACCOUNT_ID = "prebidServerAccountId";
 
     public static final String EVENT_SIZE_CHANGE = "onSizeChange";
     public static final String EVENT_AD_LOADED = "onAdLoaded";
@@ -305,6 +337,17 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     public void setCustomTargeting(final ReactPublisherAdView view, final ReadableMap customTargeting) {
         view.setCustomTargeting(customTargeting);
     }
+
+    @ReactProp(name = PROP_PREBID_UNIT_CONFIG_ID)
+    public void setPropPrebidUnitConfigId(final ReactPublisherAdView view, final String prebidUnitConfigId) {
+        view.setPrebidUnitConfigId(prebidUnitConfigId);
+    }
+
+    @ReactProp(name = PROP_PREBID_SERVER_ACCOUNT_ID)
+    public void setPropPrebidServerAccountId(final ReactPublisherAdView view, final String prebidServerAccountId) {
+        view.setPrebidServerAccountId(prebidServerAccountId);
+    }
+
 
     @ReactProp(name = PROP_AD_UNIT_ID)
     public void setPropAdUnitID(final ReactPublisherAdView view, final String adUnitID) {
