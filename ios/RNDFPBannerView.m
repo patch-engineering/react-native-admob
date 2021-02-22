@@ -49,7 +49,7 @@
         _bannerView.adSizeDelegate = self;
         _bannerView.appEventDelegate = self;
         _bannerView.rootViewController = rootViewController;
-        self.bannerUnit = [[BannerAdUnit alloc] initWithConfigId:_prebidUnitConfigId size:CGSizeMake(300, 250)];
+        
         [self addSubview:_bannerView];
     }
 
@@ -73,6 +73,8 @@
             request.customTargeting = _customTargeting;
         }
     }
+
+    self.bannerUnit = [[BannerAdUnit alloc] initWithConfigId:_prebidUnitConfigId size:CGSizeMake(300, 250)];
     
     PBBannerAdUnitParameters* parameters = [[PBBannerAdUnitParameters alloc] init];
     parameters.api = @[PBApi.MRAID_2];
