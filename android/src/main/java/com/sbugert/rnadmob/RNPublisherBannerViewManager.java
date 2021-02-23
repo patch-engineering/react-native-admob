@@ -202,7 +202,7 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         PrebidMobile.setPrebidServerHost(Host.APPNEXUS);
         PrebidMobile.setPrebidServerAccountId(this.prebidServerAccountId); 
         PrebidMobile.setApplicationContext(getContext());
-        BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidUnitConfigId);
+        BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidUnitConfigId, 300, 250);
 
         bannerAdUnit.fetchDemand(adRequestBuilder, new OnCompleteListener() {
         @Override
