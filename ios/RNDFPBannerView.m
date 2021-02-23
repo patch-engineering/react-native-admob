@@ -38,12 +38,6 @@
         UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
         UIViewController *rootViewController = [keyWindow rootViewController];
 
-        // where should these go?
-        Prebid.shared.prebidServerAccountId = _prebidServerAccountId;
-        Prebid.shared.prebidServerHost = PrebidHostAppnexus;
-        // for debugging only
-        // Prebid.shared.pbsDebug = true;
-
         _bannerView = [[DFPBannerView alloc] initWithAdSize:kGADAdSizeBanner];
         _bannerView.delegate = self;
         _bannerView.adSizeDelegate = self;
@@ -73,6 +67,9 @@
             request.customTargeting = _customTargeting;
         }
     }
+
+    Prebid.shared.prebidServerAccountId = _prebidServerAccountId;
+    Prebid.shared.prebidServerHost = PrebidHostAppnexus;
 
     self.bannerUnit = [[BannerAdUnit alloc] initWithConfigId:_prebidUnitConfigId size:CGSizeMake(300, 250)];
     
