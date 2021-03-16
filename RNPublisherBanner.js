@@ -94,6 +94,11 @@ PublisherBanner.propTypes = {
   customTargeting: object,
 
   /**
+   * IAB string to enable restricted data processing
+   */
+  IABUSPrivacyString:string,
+
+  /**
    * Optional array specifying all valid sizes that are appropriate for this slot.
    */
   validAdSizes: arrayOf(string),
