@@ -21,6 +21,7 @@
     NSDictionary *_customTargeting;
     NSString *_prebidUnitConfigId;
     NSString *_prebidServerAccountId;
+    NSString *_IABUSPrivacyString;
 }
 
 - (void)dealloc
@@ -76,7 +77,13 @@
     PBBannerAdUnitParameters* parameters = [[PBBannerAdUnitParameters alloc] init];
     parameters.api = @[PBApi.MRAID_2];
     self.bannerUnit.parameters = parameters;
-    
+
+     if (_IABUSPrivacyString != nil) {
+        if (_IABUSPrivacyString.length > 0) {
+            [NSUserDefaults.standardUserDefaults setObject:_IABUSPrivacyString
+                                            forKey:@"IABUSPrivacy_String"];
+        }
+    }
     [self.bannerUnit fetchDemandWithAdObject:request completion:^(enum ResultCode result) {
         NSLog(@"Prebid demand result %ld", (long)result);
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -115,7 +122,10 @@
 {
     _prebidUnitConfigId = prebidUnitConfigId;
 }
-
+- (void)setIABUSPrivacyString:(NSString *)IABUSPrivacyString
+{
+    _IABUSPrivacyString = IABUSPrivacyString;
+}
 
 - (void)setCustomTargeting:(NSDictionary *)customTargeting
 {

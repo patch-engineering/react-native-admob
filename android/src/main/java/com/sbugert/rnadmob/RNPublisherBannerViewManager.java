@@ -51,6 +51,8 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
     String adUnitID;
     String prebidUnitConfigId;
     String prebidServerAccountId;
+    String IABUSPrivacyString;
+
     AdSize adSize;
     ReadableMap customTargeting;
 
@@ -203,6 +205,13 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         PrebidMobile.setPrebidServerAccountId(this.prebidServerAccountId); 
         PrebidMobile.setApplicationContext(getContext());
         BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidUnitConfigId, 300, 250);
+        // Insert IAB String
+        Bundle networkExtrasBundle = new Bundle();
+        // Are optional props a thing. why cant i remember.
+        if (IABUSPrivacyString.length() > 0){
+            networkExtrasBundle.putString("IABUSPrivacy_String", this.IABUSPrivacyString);
+            adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, networkExtrasBundle);
+        }
 
         bannerAdUnit.fetchDemand(adRequestBuilder, new OnCompleteListener() {
         @Override
@@ -230,7 +239,9 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
     public void setPrebidServerAccountId(String prebidServerAccountId) {
         this.prebidServerAccountId = prebidServerAccountId;
     }
-
+     public void setIABUSPrivacyString(String IABUSPrivacyS    tring) {
+        this.IABUSPrivacyString = IABUSPrivacyString;
+    }
     public void setTestDevices(String[] testDevices) {
         this.testDevices = testDevices;
     }
@@ -267,6 +278,8 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     public static final String PROP_CUSTOM_TARGETING = "customTargeting";
     public static final String PROP_PREBID_UNIT_CONFIG_ID = "prebidUnitConfigId";
     public static final String PROP_PREBID_SERVER_ACCOUNT_ID = "prebidServerAccountId";
+    public static final String IAB_US_PRIVACY_STRING = "IABUSPrivacyString";
+
 
     public static final String EVENT_SIZE_CHANGE = "onSizeChange";
     public static final String EVENT_AD_LOADED = "onAdLoaded";
@@ -346,6 +359,10 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     @ReactProp(name = PROP_PREBID_SERVER_ACCOUNT_ID)
     public void setPropPrebidServerAccountId(final ReactPublisherAdView view, final String prebidServerAccountId) {
         view.setPrebidServerAccountId(prebidServerAccountId);
+    }
+    @ReactProp(name = IAB_US_PRIVACY_STRING)
+    public void setPropIABUSPrivacyString(final ReactPublisherAdView view, final String IABUSPrivacyString) {
+        view.setIABUSPrivacyString(IABUSPrivacyString);
     }
 
 

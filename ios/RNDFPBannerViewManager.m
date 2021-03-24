@@ -38,6 +38,9 @@ RCT_REMAP_VIEW_PROPERTY(adUnitID, _bannerView.adUnitID, NSString)
 RCT_EXPORT_VIEW_PROPERTY(prebidServerAccountId, NSString)
 RCT_EXPORT_VIEW_PROPERTY(prebidUnitConfigId, NSString)
 
+RCT_EXPORT_VIEW_PROPERTY(IABUSPrivacyString, NSString)
+
+
 RCT_EXPORT_VIEW_PROPERTY(validAdSizes, NSArray)
 RCT_EXPORT_VIEW_PROPERTY(testDevices, NSArray)
 RCT_EXPORT_VIEW_PROPERTY(customTargeting, NSDictionary)
