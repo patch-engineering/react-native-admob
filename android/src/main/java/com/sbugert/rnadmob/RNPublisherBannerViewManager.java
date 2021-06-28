@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
 
@@ -200,7 +201,7 @@ class ReactPublisherAdView extends ReactViewGroup implements AppEventListener {
         }
         }
         PrebidMobile.setPrebidServerHost(Host.APPNEXUS);
-        PrebidMobile.setPrebidServerAccountId(this.prebidServerAccountId); 
+        PrebidMobile.setPrebidServerAccountId(this.prebidServerAccountId);
         PrebidMobile.setApplicationContext(getContext());
         BannerAdUnit bannerAdUnit = new BannerAdUnit(this.prebidUnitConfigId, 300, 250);
 
@@ -362,6 +363,12 @@ public class RNPublisherBannerViewManager extends ViewGroupManager<ReactPublishe
     }
 
     private AdSize getAdSizeFromString(String adSize) {
+        //to match the ios required CGSize eg. "{300,250}"
+        if (Pattern.matches("\\{\\d*,\\d*\\}", adSize)) {
+            String[] sizes = adSize.substring(1, adSize.length() - 1).split(",");
+
+            return new AdSize(new Integer(sizes[0]), new Integer(sizes[1]));
+        }
         switch (adSize) {
             case "banner":
                 return AdSize.BANNER;
